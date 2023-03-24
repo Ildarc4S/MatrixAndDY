@@ -1,18 +1,40 @@
 #include <iostream>
+//#include "Matrix.h"
 
-template <typename T> 
-class Matrix
+class AbstractMatrix
 {
 public:
-    Matrix(T** arr, int cols, int rows){}
+    virtual ~AbstractMatrix() {};
+    virtual int getRows() = 0;
+    virtual int getCols() = 0;
+    virtual void operator+=(const AbstractMatrix& other) = 0;
+    virtual void operator-=(const AbstractMatrix& other) = 0;
+    //virtual AbstractMatrix& operator*(AbstractMatrix& other) = 0;
+
+};
+
+template <typename T>
+class Matrix : public AbstractMatrix
+{
+public:
+    Matrix();
+    Matrix(T** arr, int cols, int rows);
+    //Matrix(int rows, int cols, T& element);
+
+    virtual int getRows() override { return rows_; }
+    virtual int getCols() override { return cols_; }
+
+    virtual void operator+=(const AbstractMatrix& other) override;
+    virtual void operator-=(const AbstractMatrix& other) override;
+    //virtual AbstractMatrix& operator*(AbstractMatrix& other) override;
 
     void Print()
     {
-        for (int i = 0; i < _rows; i++)
+        for (int i = 0; i < rows_; i++)
         {
-            for (int j = 0; j < _cols; j++)
+            for (int j = 0; j < cols_; j++)
             {
-                std::cout << _matrix[i][j] << " ";
+                std::cout << matrix_[i][j] << " ";
             }
             std::cout << "\n";
         }
@@ -20,25 +42,69 @@ public:
 private:
 
 
-    int _cols;
-    int _rows;
-    T** _matrix;
+    int cols_;
+    int rows_;
+    T** matrix_;
 };
 
 template <typename T>
-Matrix<T>::Matrix(T** arr, int cols, int rows) :_rows(rows), _cols(cols)
+Matrix<T>::Matrix() : rows_(0), cols_(0), matrix_(nullptr) {}
+
+template <typename T>
+Matrix<T>::Matrix(T** arr, int rows, int cols) : rows_(rows), cols_(cols)
 {
-    _matrix = new T * [_rows];
-    for (int i = 0; i < _rows; i++)
+    matrix_ = new T * [rows_];
+    for (int i = 0; i < rows_; i++)
     {
-        _matrix[i] = new T[_cols];
+        matrix_[i] = new T[cols_];
     }
 
-    for (int i = 0; i < _rows; i++)
+    for (int i = 0; i < rows_; i++)
     {
-        for (int j = 0; j < _cols; j++)
+        for (int j = 0; j < cols_; j++)
         {
-            _matrix[i][j] = arr[i][j];
+            matrix_[i][j] = arr[i][j];
+        }
+    }
+}
+
+//template <typename T>
+//Matrix<T>::Matrix(int rows, int cols, T& element)
+//{
+//    for (int i = 0; i < rows_; i++)
+//    {
+//        for (int j = 0; j < cols_; j++)
+//        {
+//            matrix_[i][j] = element;
+//        }
+//    }
+//}
+
+
+template <typename T>
+void Matrix<T>::operator+=(const AbstractMatrix& other)
+{
+    const Matrix<T>& otherMatrix = static_cast< const Matrix&>(other);
+
+    for (size_t i = 0; i < rows_; i++)
+    {
+        for (size_t j = 0; j < cols_; j++)
+        {
+            matrix_[i][j] += otherMatrix.matrix_[i][j];
+        }
+    }
+}
+
+template <typename T>
+void Matrix<T>::operator-=(const AbstractMatrix& other)
+{
+    const Matrix<T>& otherMatrix = static_cast<const Matrix&>(other);
+
+    for (size_t i = 0; i < rows_; i++)
+    {
+        for (size_t j = 0; j < cols_; j++)
+        {
+            matrix_[i][j] -= otherMatrix.matrix_[i][j];
         }
     }
 }
@@ -60,7 +126,13 @@ int main()
             arr[i][j] = rand()%10;
         }
     }
-    Matrix<int> A(arr,N,N);
-    A.Print();
 
+    Matrix<int> A(arr,N,N);
+    Matrix<int> B(arr, N, N);
+    A.Print();
+    B.Print();
+    A += B;
+    A.Print();
+    A -= B;
+    A.Print();
 }
